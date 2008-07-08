@@ -24,7 +24,6 @@ function check_variables($filename, $initialized = array(), $function = "", $tok
 				}
 			} elseif ($tokens[$i+1] === '=' || $function_calls[count($function_calls) - 1][0]) {
 				$initialized[$variable] = true;
-				$i++;
 			} elseif (!isset($initialized[$variable]) && !in_array($variable, $globals)) {
 				echo "Unitialized variable $token[1] in $filename on line $token[2]\n";
 			}
@@ -99,14 +98,10 @@ function check_variables($filename, $initialized = array(), $function = "", $tok
 		
 		// blocks
 		} elseif ($token === '(') {
-			$depth++;
+			$function_calls[] = array();
 		} elseif ($token === ')') {
-			if (!$depth) {
-				array_pop($function_calls);
-			} else {
-				$depth--;
-			}
-		} elseif ($token === ',' && !$depth) {
+			array_pop($function_calls);
+		} elseif ($token === ',') {
 			array_shift($function_calls[count($function_calls) - 1]);
 		} elseif ($token === '{') {
 			$i = check_variables($filename, $initialized, $function, $tokens, $i+1);
