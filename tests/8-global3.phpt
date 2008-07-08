@@ -10,3 +10,4 @@ f();
 ?>
 --EXPECTF--
 Unitialized global $x in %s on line 7
+: called in %s on line 9

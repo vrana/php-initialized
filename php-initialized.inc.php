@@ -1,6 +1,6 @@
 <?php
 function check_variables($filename, $initialized = array(), $function = "", $tokens = null, $i = 0) {
-	static $function_globals = array();
+	static $function_globals = array(), $function_parameters = array(), $function_calls = array();
 	static $globals = array('$php_errormsg', '$_SERVER', '$_GET', '$_POST', '$_COOKIE', '$_FILES', '$_ENV', '$_REQUEST', '$_SESSION'); // not $GLOBALS
 	if (!isset($tokens)) {
 		$tokens = array();
@@ -22,7 +22,7 @@ function check_variables($filename, $initialized = array(), $function = "", $tok
 				if (!$function_globals[$function][$variable]) {
 					$function_globals[$function][$variable] = ($tokens[$i+1] === '=' ? true : "$filename on line $token[2]");
 				}
-			} elseif ($tokens[$i+1] === '=') {
+			} elseif ($tokens[$i+1] === '=' || $function_calls[count($function_calls) - 1][0]) {
 				$initialized[$variable] = true;
 				$i++;
 			} elseif (!isset($initialized[$variable]) && !in_array($variable, $globals)) {
@@ -59,43 +59,34 @@ function check_variables($filename, $initialized = array(), $function = "", $tok
 		} elseif ($token[0] === T_FUNCTION) {
 			$token = $tokens[++$i];
 			$locals = array();
+			$parameters = array();
 			do {
 				$i++;
 				if ($tokens[$i][0] === T_VARIABLE) {
+					$parameters[] = ($tokens[$i-1] === '&');
 					$locals[$tokens[$i][1]] = true;
 				}
 			} while ($tokens[$i+1] !== '{');
+			$function_parameters[$token[1]] = $parameters;
 			$i = check_variables($filename, $locals, $token[1], $tokens, $i+2);
 		} elseif ($token[0] === T_STRING && $tokens[$i+1] === '(') {
+			$i++;
 			if (function_exists($token[1])) {
 				$reflection = new ReflectionFunction($token[1]);
-				$parameters = $reflection->getParameters();
-				$param = 0;
-				$depth = 0;
-				do { //! check inner functions call, allow assignment
-					$i++;
-					if ($tokens[$i] === '(') {
-						$depth++;
-					} elseif ($tokens[$i] === ')') {
-						$depth--;
-					} elseif ($depth == 1) {
-						if ($tokens[$i] === ',') {
-							$param++;
-						} elseif ($tokens[$i][0] === T_VARIABLE && !isset($initialized[$tokens[$i][1]]) && !in_array($tokens[$i][1], $globals)) {
-							if (!$parameters[$param]->isPassedByReference()) {
-								echo "Unitialized parameter " . $tokens[$i][1] . " in $filename on line " . $tokens[$i][2] . "\n";
-							} else {
-								$initialized[$tokens[$i][1]] = true;
-							}
+				$parameters = array();
+				foreach ($reflection->getParameters() as $parameter) {
+					$parameters[] = $parameter->isPassedByReference();
+				}
+				$function_calls[] = $parameters;
+			} else {
+				$function_calls[] = $function_parameters[$token[1]];
+				if (is_array($function_globals[$token[1]])) {
+					foreach ($function_globals[$token[1]] as $variable => $info) {
+						if ($info === true) {
+							$initialized[$variable] = true;
+						} elseif (is_string($info) && !isset($initialized[$variable])) {
+							echo "Unitialized global $variable in $info\n: called in $filename on line $token[2]\n";
 						}
-					}
-				} while ($depth > 0);
-			} elseif (is_array($function_globals[$token[1]])) {
-				foreach ($function_globals[$token[1]] as $variable => $info) {
-					if ($info === true) {
-						$initialized[$variable] = true;
-					} elseif (is_string($info) && !isset($initialized[$variable])) {
-						echo "Unitialized global $variable in $info\n";
 					}
 				}
 			}
@@ -107,6 +98,16 @@ function check_variables($filename, $initialized = array(), $function = "", $tok
 			}
 		
 		// blocks
+		} elseif ($token === '(') {
+			$depth++;
+		} elseif ($token === ')') {
+			if (!$depth) {
+				array_pop($function_calls);
+			} else {
+				$depth--;
+			}
+		} elseif ($token === ',' && !$depth) {
+			array_shift($function_calls[count($function_calls) - 1]);
 		} elseif ($token === '{') {
 			$i = check_variables($filename, $initialized, $function, $tokens, $i+1);
 		} elseif ($token === '}') {
