@@ -1,7 +1,7 @@
 <?php
 function check_variables($filename, $initialized = array(), $function = "", $tokens = null, $i = 0) {
 	static $function_globals = array();
-	static $globals = array('$php_errormsg', '$_SERVER', '$_GET', '$_POST', '$_COOKIE', '$_FILES', '$_ENV', '$_REQUEST', '$_SESSION'); // $GLOBALS ne
+	static $globals = array('$php_errormsg', '$_SERVER', '$_GET', '$_POST', '$_COOKIE', '$_FILES', '$_ENV', '$_REQUEST', '$_SESSION'); // not $GLOBALS
 	if (!isset($tokens)) {
 		$tokens = array();
 		foreach (token_get_all(file_get_contents($filename)) as $token) {
