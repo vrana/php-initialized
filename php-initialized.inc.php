@@ -3,6 +3,7 @@
 * @param string $filename name of the processed file
 * @param array [$initialized] initialized variables in keys
 * @param string [$function] inside a function definition
+* @param string [$class] inside a class definition
 * @param array [$tokens] result of token_get_all() without whitespace, computed from $filename if null
 * @param int [$i] position in $tokens
 * @return mixed $i in the end of block, $initialized in the end of code
@@ -11,7 +12,7 @@
 * @copyright 2008 Jakub Vrana
 * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
 */
-function check_variables($filename, $initialized = array(), $function = "", $tokens = null, $i = 0) {
+function check_variables($filename, $initialized = array(), $function = "", $class = "", $tokens = null, $i = 0) {
 	static $function_globals = array(), $function_parameters = array(), $function_calls = array();
 	static $globals = array('$php_errormsg', '$_SERVER', '$_GET', '$_POST', '$_COOKIE', '$_FILES', '$_ENV', '$_REQUEST', '$_SESSION'); // not $GLOBALS
 	if (!isset($tokens)) {
@@ -62,8 +63,9 @@ function check_variables($filename, $initialized = array(), $function = "", $tok
 				}
 			} while ($tokens[$i+1] !== '{'); //! allow single commands
 			array_pop($function_calls);
-			$i = check_variables($filename, $initialized + $locals, $function, $tokens, $i+2);
+			$i = check_variables($filename, $initialized + $locals, $function, $class, $tokens, $i+2);
 		
+		// global
 		} elseif ($token[0] === T_GLOBAL && $function) {
 			do {
 				$i++;
@@ -76,7 +78,7 @@ function check_variables($filename, $initialized = array(), $function = "", $tok
 		} elseif ($token[0] === T_FUNCTION) {
 			$i++;
 			$token = $tokens[$i];
-			$locals = array();
+			$locals = ($class ? array('$this' => true) : array());
 			$parameters = array();
 			do {
 				$i++;
@@ -88,7 +90,7 @@ function check_variables($filename, $initialized = array(), $function = "", $tok
 				}
 			} while ($tokens[$i+1] !== '{');
 			$function_parameters[$token[1]] = $parameters;
-			$i = check_variables($filename, $locals, $token[1], $tokens, $i+2);
+			$i = check_variables($filename, $locals, $token[1], $class, $tokens, $i+2);
 		} elseif ($token[0] === T_STRING && $tokens[$i+1] === '(') {
 			$i++;
 			if (function_exists($token[1])) {
@@ -99,22 +101,30 @@ function check_variables($filename, $initialized = array(), $function = "", $tok
 				}
 				$function_calls[] = $parameters;
 			} else {
-				$function_calls[] = array_values($function_parameters[$token[1]]);
+				$function_calls[] = array_values((array) $function_parameters[$token[1]]);
 				if (is_array($function_globals[$token[1]])) {
 					foreach ($function_globals[$token[1]] as $variable => $info) {
 						if ($info === true) {
 							$initialized[$variable] = true;
-						} elseif (is_string($info) && !isset($initialized[$variable])) {
+						} elseif (is_string($info) && !isset($initialized[$variable])) { //! doesn't work inside a function call
 							echo "Unitialized global $variable in $info\n: called in $filename on line $token[2]\n";
 						}
 					}
 				}
 			}
 		
+		// classes
+		} elseif ($token[0] === T_CLASS) {
+			$i = check_variables($filename, array(), $function, $tokens[$i+1][1], $tokens, $i+1);
+		} elseif ($token[0] === T_VAR || (in_array($token[0], array(T_PUBLIC, T_PRIVATE, T_PROTECTED), true) && $tokens[$i+1][0] === T_VARIABLE)) {
+			do {
+				$i++;
+			} while ($tokens[$i] !== ';');
+		
 		// includes
 		} elseif (in_array($token[0], array(T_INCLUDE, T_REQUIRE, T_INCLUDE_ONCE, T_REQUIRE_ONCE), true)) {
 			if ($tokens[$i+1][0] === T_CONSTANT_ENCAPSED_STRING && $tokens[$i+2] === ';') {
-				$initialized += check_variables(stripslashes(substr($tokens[$i+1][1], 1, -1)), $initialized, $function);
+				$initialized += check_variables(stripslashes(substr($tokens[$i+1][1], 1, -1)), $initialized, $function, $class);
 			}
 		
 		// blocks
@@ -125,7 +135,7 @@ function check_variables($filename, $initialized = array(), $function = "", $tok
 		} elseif ($token === ',' && $function_calls) {
 			array_shift($function_calls[count($function_calls) - 1]);
 		} elseif ($token === '{') {
-			$i = check_variables($filename, $initialized, $function, $tokens, $i+1);
+			$i = check_variables($filename, $initialized, $function, $class, $tokens, $i+1);
 		} elseif ($token === '}') {
 			return $i;
 		}
