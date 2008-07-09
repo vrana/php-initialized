@@ -78,7 +78,7 @@ function check_variables($filename, $initialized = array(), $function = "", $cla
 		} elseif ($token[0] === T_FUNCTION) {
 			$i++;
 			$token = $tokens[$i];
-			$locals = ($class ? array('$this' => true) : array());
+			$locals = ($class && $tokens[$i-2][0] !== T_STATIC ? array('$this' => true) : array());
 			$parameters = array();
 			do {
 				$i++;
@@ -102,11 +102,11 @@ function check_variables($filename, $initialized = array(), $function = "", $cla
 				$function_calls[] = $parameters;
 			} else {
 				$function_calls[] = array_values((array) $function_parameters[$token[1]]);
-				if (is_array($function_globals[$token[1]])) {
+				if (!$function && is_array($function_globals[$token[1]])) {
 					foreach ($function_globals[$token[1]] as $variable => $info) {
 						if ($info === true) {
 							$initialized[$variable] = true;
-						} elseif (is_string($info) && !isset($initialized[$variable])) { //! doesn't work inside a function call
+						} elseif (is_string($info) && !isset($initialized[$variable])) {
 							echo "Unitialized global $variable in $info\n: called in $filename on line $token[2]\n";
 						}
 					}
