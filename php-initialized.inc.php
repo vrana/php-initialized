@@ -1,4 +1,16 @@
 <?php
+/** Recursive function checking the variables initialization
+* @param string $filename name of the processed file
+* @param array [$initialized] initialized variables in keys
+* @param string [$function] inside a function definition
+* @param array [$tokens] result of token_get_all() without whitespace, computed from $filename if null
+* @param int [$i] position in $tokens
+* @return mixed $i in the end of block, $initialized in the end of code
+* @link http://code.google.com/p/php-initialized/
+* @author Jakub Vrana, http://php.vrana.cz
+* @copyright 2008 Jakub Vrana
+* @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
+*/
 function check_variables($filename, $initialized = array(), $function = "", $tokens = null, $i = 0) {
 	static $function_globals = array(), $function_parameters = array(), $function_calls = array();
 	static $globals = array('$php_errormsg', '$_SERVER', '$_GET', '$_POST', '$_COOKIE', '$_FILES', '$_ENV', '$_REQUEST', '$_SESSION'); // not $GLOBALS
@@ -29,6 +41,7 @@ function check_variables($filename, $initialized = array(), $function = "", $tok
 					$function_parameters[$function][$variable] = false;
 				} else {
 					echo "Unitialized variable $token[1] in $filename on line $token[2]\n";
+					$initialized[$variable] = true;
 				}
 			}
 		} elseif ($token[0] === T_LIST) {
@@ -109,7 +122,7 @@ function check_variables($filename, $initialized = array(), $function = "", $tok
 			$function_calls[] = array();
 		} elseif ($token === ')') {
 			array_pop($function_calls);
-		} elseif ($token === ',') {
+		} elseif ($token === ',' && $function_calls) {
 			array_shift($function_calls[count($function_calls) - 1]);
 		} elseif ($token === '{') {
 			$i = check_variables($filename, $initialized, $function, $tokens, $i+1);
