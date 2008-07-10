@@ -1,5 +1,5 @@
 <?php
-//! abstract, $this->method(), A::method(), save A::method instead of method
+//! abstract, interface, catch, $this->method(), A::method(), save A::method instead of method, __halt_compiler
 
 /** Recursive function checking the variables initialization
 * @param string $filename name of the processed file
