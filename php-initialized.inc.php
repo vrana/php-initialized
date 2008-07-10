@@ -100,7 +100,7 @@ function check_variables($filename, $initialized = array(), $function = "", $cla
 					}
 				}
 			} while ($tokens[$i+1] !== '{');
-			$i = check_variables($filename, $locals, $token[1], $class, $tokens, $i+2);
+			$i = check_variables($filename, $locals, $token[1], ($function ? "" : $class), $tokens, $i+2);
 		
 		// function call
 		} elseif ($token[0] === T_STRING && $tokens[$i+1] === '(') {
