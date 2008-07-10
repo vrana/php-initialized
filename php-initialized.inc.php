@@ -85,30 +85,31 @@ function check_variables($filename, $initialized = array(), $function = "", $cla
 				}
 			} while ($tokens[$i] !== ';');
 		
-		// functions
+		// function definition
 		} elseif ($token[0] === T_FUNCTION) {
 			$locals = ($class && $tokens[$i-1][0] !== T_STATIC && $tokens[$i-2][0] !== T_STATIC ? array('$this' => true) : array());
 			$i++;
 			$token = $tokens[$i];
-			$parameters = array();
+			$function_parameters[$token[1]] = array();
 			do {
 				$i++;
 				if ($tokens[$i][0] === T_VARIABLE) {
-					$parameters[$tokens[$i][1]] = ($tokens[$i-1] === '&');
+					$function_parameters[$token[1]][$tokens[$i][1]] = ($tokens[$i-1] === '&');
 					if ($tokens[$i-1] !== '&') {
 						$locals[$tokens[$i][1]] = true;
 					}
 				}
 			} while ($tokens[$i+1] !== '{');
-			$function_parameters[$token[1]] = $parameters;
 			$i = check_variables($filename, $locals, $token[1], $class, $tokens, $i+2);
+		
+		// function call
 		} elseif ($token[0] === T_STRING && $tokens[$i+1] === '(') {
 			$i++;
 			if (function_exists($token[1])) {
 				$reflection = new ReflectionFunction($token[1]);
 				$parameters = array();
 				foreach ($reflection->getParameters() as $parameter) {
-					$parameters[] = $parameter->isPassedByReference();
+					$parameters[] = ($parameter->isPassedByReference() ? '$' . $parameter->getName() : '');
 				}
 				$function_calls[] = $parameters;
 			} else {
@@ -149,7 +150,9 @@ function check_variables($filename, $initialized = array(), $function = "", $cla
 		} elseif ($token === ')') {
 			array_pop($function_calls);
 		} elseif ($token === ',' && $function_calls) {
-			array_shift($function_calls[count($function_calls) - 1]);
+			if ($function_calls[count($function_calls) - 1][0] !== '$...') {
+				array_shift($function_calls[count($function_calls) - 1]);
+			}
 		} elseif ($token === '{') {
 			$i = check_variables($filename, $initialized, $function, $class, $tokens, $i+1);
 		} elseif ($token === '}') {
