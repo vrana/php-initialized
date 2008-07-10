@@ -1,4 +1,6 @@
 <?php
+//! abstract, $this->method(), A::method(), save A::method instead of method
+
 /** Recursive function checking the variables initialization
 * @param string $filename name of the processed file
 * @param array [$initialized] initialized variables in keys
@@ -6,7 +8,7 @@
 * @param string [$class] inside a class definition
 * @param array [$tokens] result of token_get_all() without whitespace, computed from $filename if null
 * @param int [$i] position in $tokens
-* @return mixed $i in the end of block, $initialized in the end of code
+* @return mixed $initialized in the end of code, $i in the end of block
 * @link http://code.google.com/p/php-initialized/
 * @author Jakub Vrana, http://php.vrana.cz
 * @copyright 2008 Jakub Vrana
@@ -45,7 +47,7 @@ function check_variables($filename, $initialized = array(), $function = "", $cla
 					$initialized[$variable] = true;
 				}
 			}
-		} elseif ($token[0] === T_LIST) {
+		} elseif ($token[0] === T_LIST || $token[0] === T_UNSET) {
 			do {
 				$i++;
 				if ($tokens[$i][0] === T_VARIABLE) {
@@ -74,11 +76,20 @@ function check_variables($filename, $initialized = array(), $function = "", $cla
 				}
 			} while ($tokens[$i] !== ';');
 		
+		// static
+		} elseif ($token[0] === T_STATIC && $tokens[$i+1][0] !== T_FUNCTION && $tokens[$i+2][0] !== T_FUNCTION) {
+			do {
+				$i++;
+				if ($function && $tokens[$i][0] === T_VARIABLE) {
+					$initialized[$tokens[$i][1]] = true;
+				}
+			} while ($tokens[$i] !== ';');
+		
 		// functions
 		} elseif ($token[0] === T_FUNCTION) {
+			$locals = ($class && $tokens[$i-1][0] !== T_STATIC && $tokens[$i-2][0] !== T_STATIC ? array('$this' => true) : array());
 			$i++;
 			$token = $tokens[$i];
-			$locals = ($class && $tokens[$i-2][0] !== T_STATIC ? array('$this' => true) : array());
 			$parameters = array();
 			do {
 				$i++;
@@ -115,7 +126,12 @@ function check_variables($filename, $initialized = array(), $function = "", $cla
 		
 		// classes
 		} elseif ($token[0] === T_CLASS) {
-			$i = check_variables($filename, array(), $function, $tokens[$i+1][1], $tokens, $i+1);
+			$i++;
+			$token = $tokens[$i];
+			while ($tokens[$i+1] !== '{') {
+				$i++;
+			}
+			$i = check_variables($filename, array(), $function, $token[1], $tokens, $i+2);
 		} elseif ($token[0] === T_VAR || (in_array($token[0], array(T_PUBLIC, T_PRIVATE, T_PROTECTED), true) && $tokens[$i+1][0] === T_VARIABLE)) {
 			do {
 				$i++;
