@@ -5,4 +5,4 @@ Usage of uninitialized variable
 echo $x;
 ?>
 --EXPECTF--
-Unitialized variable $x in %s on line 5
+Uninitialized variable $x in %s on line 5

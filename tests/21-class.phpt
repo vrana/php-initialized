@@ -15,4 +15,4 @@ class A {
 }
 ?>
 --EXPECTF--
-Unitialized variable $a in %s on line 12
+Uninitialized variable $a in %s on line 12

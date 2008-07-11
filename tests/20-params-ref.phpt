@@ -10,4 +10,4 @@ f($a, $b);
 echo $a, $b;
 ?>
 --EXPECTF--
-Unitialized variable $a in %s on line 9
+Uninitialized variable $a in %s on line 9

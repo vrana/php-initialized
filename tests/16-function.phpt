@@ -9,4 +9,4 @@ $a = 5;
 f();
 ?>
 --EXPECTF--
-Unitialized variable $a in %s on line 6
+Uninitialized variable $a in %s on line 6

@@ -43,7 +43,7 @@ function check_variables($filename, $initialized = array(), $function = "", $cla
 				if (isset($function_parameters[$function][$variable])) {
 					$function_parameters[$function][$variable] = false;
 				} else {
-					echo "Unitialized variable $token[1] in $filename on line $token[2]\n";
+					echo "Uninitialized variable $token[1] in $filename on line $token[2]\n";
 					$initialized[$variable] = true;
 				}
 			}
@@ -119,7 +119,7 @@ function check_variables($filename, $initialized = array(), $function = "", $cla
 						if ($info === true) {
 							$initialized[$variable] = true;
 						} elseif (is_string($info) && !isset($initialized[$variable])) {
-							echo "Unitialized global $variable in $info\n: called in $filename on line $token[2]\n";
+							echo "Uninitialized global $variable in $info\n: called in $filename on line $token[2]\n";
 						}
 					}
 				}

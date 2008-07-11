@@ -8,4 +8,4 @@ if (true) {
 echo $a;
 ?>
 --EXPECTF--
-Unitialized variable $a in %s on line 8
+Uninitialized variable $a in %s on line 8

@@ -5,4 +5,4 @@ Internal function parameter passed by value
 preg_match('~~', $s);
 ?>
 --EXPECTF--
-Unitialized variable $s in %s on line 5
+Uninitialized variable $s in %s on line 5
