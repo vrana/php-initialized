@@ -1,5 +1,5 @@
 <?php
-//! abstract, interface, catch, $this->method(), A::method(), save A::method instead of method, __halt_compiler
+//! $this->method(), extends, self
 
 /** Recursive function checking the variables initialization
 * @param string $filename name of the processed file
@@ -67,6 +67,18 @@ function check_variables($filename, $initialized = array(), $function = "", $cla
 			array_pop($function_calls);
 			$i = check_variables($filename, $initialized + $locals, $function, $class, $tokens, $i+2);
 		
+		// catch
+		} elseif ($token[0] === T_CATCH) {
+			$locals = array();
+			do {
+				$i++;
+				if ($tokens[$i][0] === T_VARIABLE) {
+					$locals[$tokens[$i][1]] = true;
+				}
+			} while ($tokens[$i+1] !== '{');
+			array_pop($function_calls);
+			$i = check_variables($filename, $initialized + $locals, $function, $class, $tokens, $i+2);
+		
 		// global
 		} elseif ($token[0] === T_GLOBAL && $function) {
 			do {
@@ -86,21 +98,24 @@ function check_variables($filename, $initialized = array(), $function = "", $cla
 			} while ($tokens[$i] !== ';');
 		
 		// function definition
-		} elseif ($token[0] === T_FUNCTION) {
+		} elseif ($token[0] === T_FUNCTION && !in_array(T_ABSTRACT, array($tokens[$i-1][0], $tokens[$i-2][0], $tokens[$i-3][0]), true)) {
 			$locals = ($class && $tokens[$i-1][0] !== T_STATIC && $tokens[$i-2][0] !== T_STATIC ? array('$this' => true) : array());
 			$i++;
-			$token = $tokens[$i];
-			$function_parameters[$token[1]] = array();
+			if ($tokens[$i] === '&') {
+				$i++;
+			}
+			$name = ($class ? "$class::" : "") . $tokens[$i];
+			$function_parameters[$name] = array();
 			do {
 				$i++;
 				if ($tokens[$i][0] === T_VARIABLE) {
-					$function_parameters[$token[1]][$tokens[$i][1]] = ($tokens[$i-1] === '&');
+					$function_parameters[$name][$tokens[$i][1]] = ($tokens[$i-1] === '&');
 					if ($tokens[$i-1] !== '&') {
 						$locals[$tokens[$i][1]] = true;
 					}
 				}
 			} while ($tokens[$i+1] !== '{');
-			$i = check_variables($filename, $locals, $token[1], ($function ? "" : $class), $tokens, $i+2);
+			$i = check_variables($filename, $locals, $name, ($function ? "" : $class), $tokens, $i+2);
 		
 		// function call
 		} elseif ($token[0] === T_STRING && $tokens[$i+1] === '(') {
@@ -125,7 +140,7 @@ function check_variables($filename, $initialized = array(), $function = "", $cla
 				}
 			}
 		
-		// classes
+		// class
 		} elseif ($token[0] === T_CLASS) {
 			$i++;
 			$token = $tokens[$i];
@@ -138,11 +153,21 @@ function check_variables($filename, $initialized = array(), $function = "", $cla
 				$i++;
 			} while ($tokens[$i] !== ';');
 		
-		// includes
+		// include
 		} elseif (in_array($token[0], array(T_INCLUDE, T_REQUIRE, T_INCLUDE_ONCE, T_REQUIRE_ONCE), true)) {
 			if ($tokens[$i+1][0] === T_CONSTANT_ENCAPSED_STRING && $tokens[$i+2] === ';') {
 				$initialized += check_variables(stripslashes(substr($tokens[$i+1][1], 1, -1)), $initialized, $function, $class);
 			}
+		
+		// interface
+		} elseif ($token[0] === T_INTERFACE) {
+			while ($tokens[$i+1] !== '}') {
+				$i++;
+			}
+		
+		// halt_compiler
+		} elseif ($token[0] === T_HALT_COMPILER) {
+			return $initialized;
 		
 		// blocks
 		} elseif ($token === '(') {
