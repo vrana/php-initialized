@@ -25,6 +25,7 @@ function check_variables_ex($filename, $initialized = array(), $function = "", $
 			}
 		}
 	}
+	$in_list = false;
 	for (; $i < count($tokens); $i++) {
 		$token = $tokens[$i];
 		//~ echo (is_array($token) ? token_name($token[0]) . "\t" . trim($token[1]) : "\t$token") . "\n";
@@ -35,9 +36,9 @@ function check_variables_ex($filename, $initialized = array(), $function = "", $
 			$variable = $token[1];
 			if (isset($function_globals[$function][$variable])) {
 				if (!$function_globals[$function][$variable]) {
-					$function_globals[$function][$variable] = ($tokens[$i+1] === '=' ? true : "$filename on line $token[2]");
+					$function_globals[$function][$variable] = ($in_list || $tokens[$i+1] === '=' ? true : "$filename on line $token[2]");
 				}
-			} elseif ($tokens[$i+1] === '=' || $function_calls[count($function_calls) - 1][0]) {
+			} elseif ($in_list || $tokens[$i+1] === '=' || $function_calls[count($function_calls) - 1][0]) {
 				$initialized[$variable] = true;
 			} elseif (!isset($initialized[$variable]) && !in_array($variable, $globals)) {
 				if (isset($function_parameters[$function][$variable])) {
@@ -48,12 +49,9 @@ function check_variables_ex($filename, $initialized = array(), $function = "", $
 				}
 			}
 		} elseif ($token[0] === T_LIST || $token[0] === T_UNSET) {
-			do {
-				$i++;
-				if ($tokens[$i][0] === T_VARIABLE) {
-					$initialized[$tokens[$i][1]] = true;
-				}
-			} while ($tokens[$i] !== ')');
+			$in_list = true;
+		} elseif ($in_list && $token === ')') {
+			$in_list = false;
 		
 		// foreach
 		} elseif ($token[0] === T_AS) {
@@ -104,7 +102,7 @@ function check_variables_ex($filename, $initialized = array(), $function = "", $
 			if ($tokens[$i] === '&') {
 				$i++;
 			}
-			$name = ($class ? "$class::" : "") . $tokens[$i];
+			$name = ($class ? "$class::" : "") . $tokens[$i][1];
 			$function_parameters[$name] = array();
 			do {
 				$i++;
