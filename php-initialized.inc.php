@@ -38,7 +38,9 @@ function check_variables_ex($filename, $initialized = array(), $function = "", $
 		// variables
 		if ($token[0] === T_VARIABLE && $token[1] !== '$GLOBALS') {
 			$variable = $token[1];
-			if (isset($function_globals[$function][$variable])) {
+			if ($tokens[$i-1][0] === T_DOUBLE_COLON) {
+				// ignore static properties
+			} elseif (isset($function_globals[$function][$variable])) {
 				if (!$function_globals[$function][$variable]) {
 					$function_globals[$function][$variable] = ($in_list || $tokens[$i+1] === '=' ? true : "$filename on line $token[2]");
 				}
