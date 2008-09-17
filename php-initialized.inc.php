@@ -1,5 +1,5 @@
 <?php
-//! $this->method(), A::method(), extends, self
+//! $this->method(), A::method(), self
 
 /** Recursive function checking the variables initialization
 * @param string $filename name of the processed file
@@ -15,12 +15,13 @@
 * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
 */
 function check_variables_ex($filename, $initialized = array(), $function = "", $class = "", $tokens = null, $i = 0) {
-	static $function_globals, $function_parameters, $function_calls;
+	static $function_globals, $function_parameters, $function_calls, $extends;
 	static $globals = array('$php_errormsg', '$_SERVER', '$_GET', '$_POST', '$_COOKIE', '$_FILES', '$_ENV', '$_REQUEST', '$_SESSION'); // not $GLOBALS
 	if (func_num_args() < 2) {
 		$function_globals = array();
 		$function_parameters = array();
 		$function_calls = array();
+		$extends = array();
 	}
 	if (!isset($tokens)) {
 		$tokens = array();
@@ -148,6 +149,9 @@ function check_variables_ex($filename, $initialized = array(), $function = "", $
 			$i++;
 			$token = $tokens[$i];
 			while ($tokens[$i+1] !== '{') {
+				if ($tokens[$i][0] === T_EXTENDS) {
+					$extends[$tokens[$i-1][1]] = $tokens[$i+1][1];
+				}
 				$i++;
 			}
 			$i = check_variables_ex($filename, array(), $function, $token[1], $tokens, $i+2);
