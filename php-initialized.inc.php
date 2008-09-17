@@ -1,6 +1,4 @@
 <?php
-//! $this->method(), A::method(), self
-
 /** Recursive function checking the variables initialization
 * @param string $filename name of the processed file
 * @param array [$initialized] initialized variables in keys
@@ -123,18 +121,31 @@ function check_variables_ex($filename, $initialized = array(), $function = "", $
 		
 		// function call
 		} elseif ($token[0] === T_STRING && $tokens[$i+1] === '(') {
+			$name = $token[1];
+			$class_name = "";
+			if (($tokens[$i-1][0] === T_DOUBLE_COLON && $tokens[$i-2][1] === 'self') || ($tokens[$i-1][0] === T_OBJECT_OPERATOR && $tokens[$i-2][1] === '$this')) {
+				$class_name = $class;
+			} elseif ($tokens[$i-1][0] === T_DOUBLE_COLON && $tokens[$i-2][0] === T_STRING) {
+				$class_name = $tokens[$i-2][1];
+			}
 			$i++;
-			if (function_exists($token[1])) {
-				$reflection = new ReflectionFunction($token[1]);
+			if ($class_name ? method_exists($class_name, $name) : function_exists($name)) {
+				$reflection = ($class_name ? new ReflectionMethod($class_name, $name) : new ReflectionFunction($name));
 				$parameters = array();
 				foreach ($reflection->getParameters() as $parameter) {
 					$parameters[] = ($parameter->isPassedByReference() ? '$' . $parameter->getName() : '');
 				}
 				$function_calls[] = $parameters;
 			} else {
-				$function_calls[] = array_values((array) $function_parameters[$token[1]]);
-				if (!$function && is_array($function_globals[$token[1]])) {
-					foreach ($function_globals[$token[1]] as $variable => $info) {
+				if ($class_name) {
+					while ($class_name && !$function_parameters["$class_name::$name"]) {
+						$class_name = $extends[$class_name];
+					}
+					$name = "$class_name::$name";
+				}
+				$function_calls[] = array_values((array) $function_parameters[$name]);
+				if (!$function && is_array($function_globals[$name])) {
+					foreach ($function_globals[$name] as $variable => $info) {
 						if ($info === true) {
 							$initialized[$variable] = true;
 						} elseif (is_string($info) && !isset($initialized[$variable])) {
