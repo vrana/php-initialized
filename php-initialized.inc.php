@@ -61,15 +61,12 @@ function check_variables_ex($filename, $initialized = array(), $function = "", $
 		
 		// foreach
 		} elseif ($token[0] === T_AS) {
-			$locals = array();
 			do {
 				$i++;
 				if ($tokens[$i][0] === T_VARIABLE) {
-					$locals[$tokens[$i][1]] = true;
+					$initialized[$tokens[$i][1]] = true;
 				}
-			} while ($tokens[$i+1] !== '{'); //! allow single commands
-			array_pop($function_calls);
-			$i = check_variables_ex($filename, $initialized + $locals, $function, $class, $tokens, $i+2);
+			} while ($tokens[$i+1] !== ')');
 		
 		// catch
 		} elseif ($token[0] === T_CATCH) {
