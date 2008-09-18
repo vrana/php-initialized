@@ -61,13 +61,20 @@ function check_variables_ex($filename, $initialized = array(), $function = "", $
 		
 		// foreach
 		} elseif ($token[0] === T_AS) {
+			$locals = array();
 			do {
 				$i++;
 				if ($tokens[$i][0] === T_VARIABLE) {
-					$initialized[$tokens[$i][1]] = true;
+					$locals[$tokens[$i][1]] = true;
 				}
-			} while ($tokens[$i+1] !== ')');
-			//! if the loop is not executed then the variable is not set - use $locals for the loop body
+			} while ($tokens[$i] !== ')');
+			array_pop($function_calls);
+			if ($tokens[$i+1] === '{') {
+				$i = check_variables_ex($filename, $initialized + $locals, $function, $class, $tokens, $i+2);
+			} else {
+				//! if the loop is not executed then the variable is not set
+				$initialized += $locals;
+			}
 		
 		// catch
 		} elseif ($token[0] === T_CATCH) {
