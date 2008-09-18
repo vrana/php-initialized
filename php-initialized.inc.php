@@ -67,6 +67,7 @@ function check_variables_ex($filename, $initialized = array(), $function = "", $
 					$initialized[$tokens[$i][1]] = true;
 				}
 			} while ($tokens[$i+1] !== ')');
+			//! if the loop is not executed then the variable is not set - use $locals for the loop body
 		
 		// catch
 		} elseif ($token[0] === T_CATCH) {
