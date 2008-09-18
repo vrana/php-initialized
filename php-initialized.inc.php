@@ -195,7 +195,7 @@ function check_variables_ex($filename, $initialized = array(), $function = "", $
 			if ($function_calls[count($function_calls) - 1][0] !== '$...') {
 				array_shift($function_calls[count($function_calls) - 1]);
 			}
-		} elseif ($token === '{' || $token[0] === T_CURLY_OPEN) {
+		} elseif ($token === '{' || $token[0] === T_CURLY_OPEN || $token[0] === T_DOLLAR_OPEN_CURLY_BRACES) {
 			$i = check_variables_ex($filename, $initialized, $function, $class, $tokens, $i+1);
 		} elseif ($token === '}') {
 			return $i;
