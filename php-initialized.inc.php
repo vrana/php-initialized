@@ -31,10 +31,17 @@ function check_variables_ex($filename, $initialized = array(), $function = "", $
 		}
 	}
 	$in_list = false;
+	$shortcircuit = array();
 	for (; $i < count($tokens); $i++) {
 		$token = $tokens[$i];
 		//~ echo (is_array($token) ? token_name($token[0]) . "\t" . trim($token[1]) : "\t$token") . "\n";
 		//~ continue;
+		
+		if ($token === ')' || $token === ';' || $token === ',') {
+			while ($shortcircuit && end($shortcircuit) >= count($function_calls)) {
+				array_pop($shortcircuit);
+			}
+		}
 		
 		// variables
 		if ($token[0] === T_VARIABLE && $token[1] !== '$GLOBALS') {
@@ -46,7 +53,9 @@ function check_variables_ex($filename, $initialized = array(), $function = "", $
 					$function_globals[$function][$variable] = ($in_list || $tokens[$i+1] === '=' ? true : "$filename on line $token[2]");
 				}
 			} elseif ($in_list || $tokens[$i+1] === '=' || $function_calls[count($function_calls) - 1][0]) {
-				$initialized[$variable] = true;
+				if (!$shortcircuit) {
+					$initialized[$variable] = true;
+				}
 			} elseif (!isset($initialized[$variable]) && !in_array($variable, $globals)) {
 				if (isset($function_parameters[$function][$variable])) {
 					$function_parameters[$function][$variable] = false;
@@ -57,8 +66,6 @@ function check_variables_ex($filename, $initialized = array(), $function = "", $
 			}
 		} elseif ($token[0] === T_LIST || $token[0] === T_UNSET) {
 			$in_list = true;
-		} elseif ($in_list && $token === ')') {
-			$in_list = false;
 		
 		// foreach
 		} elseif ($token[0] === T_AS) {
@@ -194,6 +201,7 @@ function check_variables_ex($filename, $initialized = array(), $function = "", $
 		} elseif ($token === '(') {
 			$function_calls[] = array();
 		} elseif ($token === ')') {
+			$in_list = false;
 			array_pop($function_calls);
 		} elseif ($token === ',' && $function_calls) {
 			if ($function_calls[count($function_calls) - 1][0] !== '$...') {
@@ -207,6 +215,8 @@ function check_variables_ex($filename, $initialized = array(), $function = "", $
 			$i = check_variables_ex($filename, $initialized, $function, $class, $tokens, $i+1, count($function_calls));
 		} elseif (count($function_calls) === $single_command && $token === ':') {
 			$i = check_variables_ex($filename, $initialized, $function, $class, $tokens, $i+1);
+		} elseif (in_array($token[0], array(T_LOGICAL_OR, T_BOOLEAN_OR, T_LOGICAL_AND, T_BOOLEAN_AND), true) || $token === '?') {
+			$shortcircuit[] = count($function_calls);
 		}
 		
 		if (count($function_calls) === $single_command && ($token === '{' || $token === ';') && !in_array($tokens[$i+1][0], array(T_ELSE, T_ELSEIF, T_CATCH), true)) {
