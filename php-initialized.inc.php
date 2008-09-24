@@ -201,10 +201,12 @@ function check_variables_ex($filename, $initialized = array(), $function = "", $
 			}
 		} elseif ($token === '{' || $token[0] === T_CURLY_OPEN || $token[0] === T_DOLLAR_OPEN_CURLY_BRACES) {
 			$i = check_variables_ex($filename, $initialized, $function, $class, $tokens, $i+1);
-		} elseif ($token === '}') {
+		} elseif ($token === '}' || in_array($token[0], array(T_ENDDECLARE, T_ENDFOR, T_ENDFOREACH, T_ENDIF, T_ENDSWITCH, T_ENDWHILE), true)) {
 			return $i;
-		} elseif (in_array($tokens[$i+1][0], array(T_IF, T_ELSEIF, T_WHILE, T_DO, T_FOR), true)) { // T_FOREACH in T_AS
+		} elseif (in_array($tokens[$i+1][0], array(T_DECLARE, T_SWITCH, T_IF, T_ELSEIF, T_WHILE, T_DO, T_FOR), true)) { // T_FOREACH in T_AS
 			$i = check_variables_ex($filename, $initialized, $function, $class, $tokens, $i+1, count($function_calls));
+		} elseif (count($function_calls) === $single_command && $token === ':') {
+			$i = check_variables_ex($filename, $initialized, $function, $class, $tokens, $i+1);
 		}
 		
 		if (count($function_calls) === $single_command && ($token === '{' || $token === ';') && !in_array($tokens[$i+1][0], array(T_ELSE, T_ELSEIF, T_CATCH), true)) {
