@@ -203,6 +203,8 @@ function check_variables_ex($filename, $initialized = array(), $function = "", $
 			$i = check_variables_ex($filename, $initialized, $function, $class, $tokens, $i+1);
 		} elseif ($token === '}') {
 			return $i;
+		} elseif (in_array($tokens[$i+1][0], array(T_IF, T_ELSEIF, T_WHILE, T_DO, T_FOR), true)) { // T_FOREACH in T_AS
+			$i = check_variables_ex($filename, $initialized, $function, $class, $tokens, $i+1, count($function_calls));
 		}
 		
 		if (count($function_calls) === $single_command && ($token === '{' || $token === ';') && !in_array($tokens[$i+1][0], array(T_ELSE, T_ELSEIF, T_CATCH), true)) {
