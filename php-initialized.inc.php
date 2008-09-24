@@ -6,13 +6,14 @@
 * @param string [$class] inside a class definition
 * @param array [$tokens] result of token_get_all() without whitespace, computed from $filename if null
 * @param int [$i] position in $tokens
+* @param int [$single_command] parse only single command, number is current count($function_calls)
 * @return mixed $initialized in the end of code, $i in the end of block
 * @link http://code.google.com/p/php-initialized/
 * @author Jakub Vrana, http://php.vrana.cz
 * @copyright 2008 Jakub Vrana
 * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
 */
-function check_variables_ex($filename, $initialized = array(), $function = "", $class = "", $tokens = null, $i = 0) {
+function check_variables_ex($filename, $initialized = array(), $function = "", $class = "", $tokens = null, $i = 0, $single_command = null) {
 	static $function_globals, $function_parameters, $function_calls, $extends;
 	static $globals = array('$php_errormsg', '$_SERVER', '$_GET', '$_POST', '$_COOKIE', '$_FILES', '$_ENV', '$_REQUEST', '$_SESSION'); // not $GLOBALS
 	if (func_num_args() < 2) {
@@ -69,12 +70,7 @@ function check_variables_ex($filename, $initialized = array(), $function = "", $
 				}
 			} while ($tokens[$i] !== ')');
 			array_pop($function_calls);
-			if ($tokens[$i+1] === '{') {
-				$i = check_variables_ex($filename, $initialized + $locals, $function, $class, $tokens, $i+2);
-			} else {
-				//! if the loop is not executed then the variable is not set
-				$initialized += $locals;
-			}
+			$i = check_variables_ex($filename, $initialized + $locals, $function, $class, $tokens, $i+1, count($function_calls));
 		
 		// catch
 		} elseif ($token[0] === T_CATCH) {
@@ -209,6 +205,9 @@ function check_variables_ex($filename, $initialized = array(), $function = "", $
 			return $i;
 		}
 		
+		if (count($function_calls) === $single_command && ($token === '{' || $token === ';') && !in_array($tokens[$i+1][0], array(T_ELSE, T_ELSEIF, T_CATCH), true)) {
+			return $i;
+		}
 	}
 	return $initialized;
 }
