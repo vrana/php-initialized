@@ -3,8 +3,7 @@ Abstract variables
 --FILE--
 <?php
 abstract class A {
-	abstract function f();
+	abstract function f($x);
 }
-$a = new A;
 ?>
 --EXPECTF--

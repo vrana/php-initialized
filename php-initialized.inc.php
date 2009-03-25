@@ -110,24 +110,30 @@ function check_variables_ex($filename, $initialized = array(), $function = "", $
 			} while ($tokens[$i] !== ';');
 		
 		// function definition
-		} elseif ($token[0] === T_FUNCTION && !in_array(T_ABSTRACT, array($tokens[$i-1][0], $tokens[$i-2][0], $tokens[$i-3][0]), true)) {
-			$locals = ($class && $tokens[$i-1][0] !== T_STATIC && $tokens[$i-2][0] !== T_STATIC ? array('$this' => true) : array());
-			$i++;
-			if ($tokens[$i] === '&') {
+		} elseif ($token[0] === T_FUNCTION) {
+			if (in_array(T_ABSTRACT, array($tokens[$i-1][0], $tokens[$i-2][0], $tokens[$i-3][0]), true)) {
+				do {
+					$i++;
+				} while ($tokens[$i+1] !== ';');
+			} else {
+				$locals = ($class && $tokens[$i-1][0] !== T_STATIC && $tokens[$i-2][0] !== T_STATIC ? array('$this' => true) : array());
 				$i++;
-			}
-			$name = ($class ? "$class::" : "") . $tokens[$i][1];
-			$function_parameters[$name] = array();
-			do {
-				$i++;
-				if ($tokens[$i][0] === T_VARIABLE) {
-					$function_parameters[$name][$tokens[$i][1]] = ($tokens[$i-1] === '&');
-					if ($tokens[$i-1] !== '&') {
-						$locals[$tokens[$i][1]] = true;
-					}
+				if ($tokens[$i] === '&') {
+					$i++;
 				}
-			} while ($tokens[$i+1] !== '{');
-			$i = check_variables_ex($filename, $locals, $name, ($function ? "" : $class), $tokens, $i+2);
+				$name = ($class ? "$class::" : "") . $tokens[$i][1];
+				$function_parameters[$name] = array();
+				do {
+					$i++;
+					if ($tokens[$i][0] === T_VARIABLE) {
+						$function_parameters[$name][$tokens[$i][1]] = ($tokens[$i-1] === '&');
+						if ($tokens[$i-1] !== '&') {
+							$locals[$tokens[$i][1]] = true;
+						}
+					}
+				} while ($tokens[$i+1] !== '{');
+				$i = check_variables_ex($filename, $locals, $name, ($function ? "" : $class), $tokens, $i+2);
+			}
 		
 		// function call
 		} elseif ($token[0] === T_STRING && $tokens[$i+1] === '(') {
