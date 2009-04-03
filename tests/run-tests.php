@@ -14,7 +14,7 @@ function xhtml_open_tags($s) {
 	return $return;
 }
 
-if ($_GET["coverage"]) {
+if (isset($_GET["coverage"])) {
 	xdebug_start_code_coverage(XDEBUG_CC_UNUSED | XDEBUG_CC_DEAD_CODE);
 }
 
@@ -29,19 +29,21 @@ foreach (glob("*.phpt") as $filename) {
 	}
 }
 
-if ($_GET["coverage"]) {
+if (isset($_GET["coverage"])) {
 	$coverage = xdebug_get_code_coverage();
 	$coverage = $coverage[realpath("../php-initialized.inc.php")];
 	$file = explode("<br />", highlight_file("../php-initialized.inc.php", true));
 	unset($prev_color);
 	$s = "";
 	for ($l=0; $l <= count($file); $l++) {
-		$line = $file[$l];
-		$color = "#C0FFC0"; // tested
-		switch ($coverage[$l+1]) {
-			case -1: $color = "#FFC0C0"; break; // untested
-			case -2: $color = "Silver"; break; // dead code
-			case null: $color = ""; break; // not executable
+		$line = (isset($file[$l]) ? $file[$l] : null);
+		$color = ""; // not executable
+		if (isset($coverage[$l+1])) {
+			switch ($coverage[$l+1]) {
+				case -1: $color = "#FFC0C0"; break; // untested
+				case -2: $color = "Silver"; break; // dead code
+				default: $color = "#C0FFC0"; // tested
+			}
 		}
 		if (!isset($prev_color)) {
 			$prev_color = $color;
