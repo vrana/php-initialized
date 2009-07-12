@@ -42,6 +42,9 @@ function check_variables($filename, $initialized = array(), $function = "", $cla
 			while ($shortcircuit && end($shortcircuit) >= count($function_calls)) {
 				array_pop($shortcircuit);
 			}
+			foreach ($initialized as $key => $val) {
+				$initialized[$key] = true; // confirm assignment
+			}
 		}
 		
 		// variables
@@ -54,10 +57,10 @@ function check_variables($filename, $initialized = array(), $function = "", $cla
 					$function_globals[$function][$variable] = ($in_list || $tokens[$i+1] === '=' ? true : "$filename on line $token[2]");
 				}
 			} elseif ($in_list || $tokens[$i+1] === '=' || !empty($function_calls[count($function_calls) - 1][0])) {
-				if (!$shortcircuit) {
-					$initialized[$variable] = true;
+				if (!$shortcircuit && !isset($initialized[$variable])) {
+					$initialized[$variable] = false;
 				}
-			} elseif (!isset($initialized[$variable]) && !in_array($variable, $globals)) {
+			} elseif (empty($initialized[$variable]) && !in_array($variable, $globals)) {
 				if (isset($function_parameters[$function][$variable])) {
 					$function_parameters[$function][$variable] = false;
 				} else {
