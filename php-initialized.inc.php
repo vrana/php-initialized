@@ -48,10 +48,19 @@ function check_variables($filename, $initialized = array(), $function = "", $cla
 		}
 		
 		// variables
-		if ($token[0] === T_VARIABLE && $token[1] !== '$GLOBALS') {
+		if ($token[0] === T_VARIABLE) {
 			$variable = $token[1];
-			if ($tokens[$i-1][0] === T_DOUBLE_COLON) {
-				// ignore static properties
+			if ($variable == '$GLOBALS' && $tokens[$i+1] === '[' && $tokens[$i+2][0] === T_CONSTANT_ENCAPSED_STRING && $tokens[$i+3] === ']') {
+				$variable = stripslashes(substr($tokens[$i+2][1], 1, -1));
+				if (isset($function_globals[$function]['$' . $variable])) {
+					$variable = '$' . $variable;
+				} else {
+					$function_globals[$function][$variable] = false;
+				}
+				$i += 3;
+			}
+			if ($tokens[$i-1][0] === T_DOUBLE_COLON || $variable == '$GLOBALS') {
+				// ignore static properties and complex globals
 			} elseif (isset($function_globals[$function][$variable])) {
 				if (!$function_globals[$function][$variable]) {
 					$function_globals[$function][$variable] = ($in_list || $tokens[$i+1] === '=' ? true : "$filename on line $token[2]");
