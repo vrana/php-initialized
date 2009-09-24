@@ -2,7 +2,7 @@
 Usage of an uninitialized global variable inside a function
 --FILE--
 <?php
-function f() {
+function &f() {
 	global $x;
 	echo $x;
 }
