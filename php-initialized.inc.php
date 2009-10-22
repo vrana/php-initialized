@@ -12,7 +12,7 @@
 * @author Jakub Vrana, http://php.vrana.cz
 * @copyright 2008 Jakub Vrana
 * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
-* @version $Date:: 2009-03-24 12:50:06 +0100#$
+* @version $Date::                           $
 */
 function check_variables($filename, $initialized = array(), $function = "", $class = "", $tokens = null, $i = 0, $single_command = null) {
 	static $function_globals, $function_parameters, $function_calls, $extends;
