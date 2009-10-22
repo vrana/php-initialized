@@ -12,4 +12,4 @@ f();
 ?>
 --EXPECTF--
 Uninitialized global a in %s on line 7
-: called in %s on line 11
+%s:11: called

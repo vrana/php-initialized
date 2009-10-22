@@ -10,4 +10,4 @@ f();
 ?>
 --EXPECTF--
 Uninitialized global $x in %s on line 7
-: called in %s on line 9
+%s:9: called

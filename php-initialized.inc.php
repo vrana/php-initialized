@@ -178,7 +178,7 @@ function check_variables($filename, $initialized = array(), $function = "", $cla
 						if ($info === true) {
 							$initialized[$variable] = true;
 						} elseif (is_string($info) && !isset($initialized[$variable])) {
-							echo "Uninitialized global $variable in $info\n: called in $filename on line $token[2]\n";
+							echo "Uninitialized global $variable in $info\n$filename:$token[2]: called\n";
 						}
 					}
 				}
