@@ -156,6 +156,8 @@ function check_variables($filename, $initialized = array(), $function = "", $cla
 				$class_name = $class;
 			} elseif ($tokens[$i-1][0] === T_DOUBLE_COLON && $tokens[$i-2][0] === T_STRING) {
 				$class_name = $tokens[$i-2][1];
+			} elseif (strtolower($name) == "define" && $tokens[$i+2][0] === T_CONSTANT_ENCAPSED_STRING && $tokens[$i+3] === ',') { // constant definition
+				$initialized[stripslashes(substr($tokens[$i+2][1], 1, -1))] = true;
 			}
 			$i++;
 			if ($class_name ? method_exists($class_name, $name) : function_exists($name)) {
@@ -182,6 +184,15 @@ function check_variables($filename, $initialized = array(), $function = "", $cla
 						}
 					}
 				}
+			}
+		
+		// constants
+		} elseif ($token[0] === T_STRING && $tokens[$i-1][0] !== T_OBJECT_OPERATOR && $tokens[$i+1][0] !== T_DOUBLE_COLON // not properties and classes
+		&& $tokens[$i-1][0] !== T_DOUBLE_COLON //! class constants
+		) {
+			$name = $token[1];
+			if (!defined($name) && !isset($initialized[$name])) {
+				echo "Uninitialized constant $name in $filename on line $token[2]\n";
 			}
 		
 		// class
