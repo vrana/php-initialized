@@ -16,9 +16,9 @@
 * @version $Date::                           $
 */
 function check_variables($filename, $initialized = array(), $function = "", $class = "", $in_string = false, $tokens = null, $i = 0, $single_command = null) {
-	static $function_globals, $function_parameters, $function_calls, $extends;
-	static $globals = array('$php_errormsg', '$_SERVER', '$_GET', '$_POST', '$_COOKIE', '$_FILES', '$_ENV', '$_REQUEST', '$_SESSION'); // not $GLOBALS
+	static $globals, $function_globals, $function_parameters, $function_calls, $extends;
 	if (func_num_args() < 2) {
+		$globals = array('$php_errormsg', '$_SERVER', '$_GET', '$_POST', '$_COOKIE', '$_FILES', '$_ENV', '$_REQUEST', '$_SESSION'); // not $GLOBALS
 		$function_globals = array();
 		$function_parameters = array();
 		$function_calls = array();
@@ -158,7 +158,7 @@ function check_variables($filename, $initialized = array(), $function = "", $cla
 			} elseif ($tokens[$i-1][0] === T_DOUBLE_COLON && $tokens[$i-2][0] === T_STRING) {
 				$class_name = $tokens[$i-2][1];
 			} elseif (strtolower($name) == "define" && $tokens[$i+2][0] === T_CONSTANT_ENCAPSED_STRING && $tokens[$i+3] === ',') { // constant definition
-				$initialized[stripslashes(substr($tokens[$i+2][1], 1, -1))] = true;
+				$globals[stripslashes(substr($tokens[$i+2][1], 1, -1))] = true;
 			}
 			$i++;
 			if ($class_name ? method_exists($class_name, $name) : function_exists($name)) {
@@ -196,7 +196,7 @@ function check_variables($filename, $initialized = array(), $function = "", $cla
 		&& $tokens[$i-1][0] !== T_DOUBLE_COLON //! class constants
 		) {
 			$name = $token[1];
-			if (!defined($name) && !isset($initialized[$name])) {
+			if (!defined($name) && !isset($globals[$name])) { //! SID
 				echo "Uninitialized constant $name in $filename on line $token[2]\n";
 			}
 		
