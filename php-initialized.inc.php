@@ -159,6 +159,8 @@ function check_variables($filename, $initialized = array(), $function = "", $cla
 				$class_name = $tokens[$i-2][1];
 			} elseif (strtolower($name) == "define" && $tokens[$i+2][0] === T_CONSTANT_ENCAPSED_STRING && $tokens[$i+3] === ',') { // constant definition
 				$globals[stripslashes(substr($tokens[$i+2][1], 1, -1))] = true;
+			} elseif (strtolower($name) == "session_start") {
+				$globals["SID"] = true;
 			}
 			$i++;
 			if ($class_name ? method_exists($class_name, $name) : function_exists($name)) {
@@ -196,7 +198,7 @@ function check_variables($filename, $initialized = array(), $function = "", $cla
 		&& $tokens[$i-1][0] !== T_DOUBLE_COLON //! class constants
 		) {
 			$name = $token[1];
-			if (!defined($name) && !isset($globals[$name])) { //! SID
+			if (!defined($name) && !isset($globals[$name])) {
 				echo "Uninitialized constant $name in $filename on line $token[2]\n";
 			}
 		
