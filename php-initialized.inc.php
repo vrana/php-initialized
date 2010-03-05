@@ -221,7 +221,11 @@ function check_variables($filename, $initialized = array(), $function = "", $cla
 		// include
 		} elseif (in_array($token[0], array(T_INCLUDE, T_REQUIRE, T_INCLUDE_ONCE, T_REQUIRE_ONCE), true)) {
 			if ($tokens[$i+1][0] === T_CONSTANT_ENCAPSED_STRING && $tokens[$i+2] === ';') {
-				$initialized += check_variables(stripslashes(substr($tokens[$i+1][1], 1, -1)), $initialized, $function, $class);
+				$include = stripslashes(substr($tokens[$i+1][1], 1, -1));
+				if (!file_exists($include)) {
+					$include = dirname($filename) . "/$include";
+				}
+				$initialized += check_variables($include, $initialized, $function, $class);
 			}
 		
 		// interface
