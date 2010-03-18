@@ -198,7 +198,7 @@ function check_variables($filename, $initialized = array(), $function = "", $cla
 		&& $tokens[$i-1][0] !== T_DOUBLE_COLON //! class constants
 		) {
 			$name = $token[1];
-			if (!defined($name) && !isset($globals[$name])) {
+			if (!defined($name) && !isset($globals[$name])) { //! case-insensitive constants
 				echo "Uninitialized constant $name in $filename on line $token[2]\n";
 			}
 		
@@ -220,12 +220,20 @@ function check_variables($filename, $initialized = array(), $function = "", $cla
 		
 		// include
 		} elseif (in_array($token[0], array(T_INCLUDE, T_REQUIRE, T_INCLUDE_ONCE, T_REQUIRE_ONCE), true)) {
+			$path = "";
+			if ($tokens[$i+1][0] === T_STRING && strtolower($tokens[$i+1][1]) === "dirname" && $tokens[$i+2] === '(' && $tokens[$i+3][0] === T_FILE && $tokens[$i+4] === ')' && $tokens[$i+5] === '.') {
+				$path = dirname($filename);
+				$i += 5;
+			} elseif (strtoupper($tokens[$i+1][1]) === "__DIR__" && $tokens[$i+2] === '.') {
+				$path = dirname($filename);
+				$i += 2;
+			}
 			if ($tokens[$i+1][0] === T_CONSTANT_ENCAPSED_STRING && $tokens[$i+2] === ';') {
 				$include = stripslashes(substr($tokens[$i+1][1], 1, -1));
-				if (!file_exists($include)) {
-					$include = dirname($filename) . "/$include";
+				if (!$path && !file_exists($include) && !preg_match('~^(/|\./|\.\./)~', $include)) { // should respect include_path
+					$path = dirname($filename) . "/";
 				}
-				$initialized += check_variables($include, $initialized, $function, $class);
+				$initialized += check_variables($path . $include, $initialized, $function, $class);
 			}
 		
 		// interface
