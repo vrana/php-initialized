@@ -157,9 +157,9 @@ function check_variables($filename, $initialized = array(), $function = "", $cla
 				$class_name = $class;
 			} elseif ($tokens[$i-1][0] === T_DOUBLE_COLON && $tokens[$i-2][0] === T_STRING) {
 				$class_name = $tokens[$i-2][1];
-			} elseif (strtolower($name) == "define" && $tokens[$i+2][0] === T_CONSTANT_ENCAPSED_STRING && $tokens[$i+3] === ',') { // constant definition
+			} elseif (!strcasecmp($name, "define") && $tokens[$i+2][0] === T_CONSTANT_ENCAPSED_STRING && $tokens[$i+3] === ',') { // constant definition
 				$globals[stripslashes(substr($tokens[$i+2][1], 1, -1))] = true;
-			} elseif (strtolower($name) == "session_start") {
+			} elseif (!strcasecmp($name, "session_start")) {
 				$globals["SID"] = true;
 			}
 			$i++;
@@ -221,10 +221,10 @@ function check_variables($filename, $initialized = array(), $function = "", $cla
 		// include
 		} elseif (in_array($token[0], array(T_INCLUDE, T_REQUIRE, T_INCLUDE_ONCE, T_REQUIRE_ONCE), true)) {
 			$path = "";
-			if ($tokens[$i+1][0] === T_STRING && strtolower($tokens[$i+1][1]) === "dirname" && $tokens[$i+2] === '(' && $tokens[$i+3][0] === T_FILE && $tokens[$i+4] === ')' && $tokens[$i+5] === '.') {
+			if ($tokens[$i+1][0] === T_STRING && !strcasecmp($tokens[$i+1][1], "dirname") && $tokens[$i+2] === '(' && $tokens[$i+3][0] === T_FILE && $tokens[$i+4] === ')' && $tokens[$i+5] === '.') {
 				$path = dirname($filename);
 				$i += 5;
-			} elseif (strtoupper($tokens[$i+1][1]) === "__DIR__" && $tokens[$i+2] === '.') {
+			} elseif (!strcasecmp($tokens[$i+1][1], "__DIR__") && $tokens[$i+2] === '.') {
 				$path = dirname($filename);
 				$i += 2;
 			}
