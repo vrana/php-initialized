@@ -64,7 +64,7 @@ function check_variables($filename, $initialized = array(), $function = "", $cla
 				// ignore static properties and complex globals
 			} elseif (isset($function_globals[$function][$variable])) {
 				if (!$function_globals[$function][$variable]) {
-					$function_globals[$function][$variable] = ($in_list || $tokens[$i+1] === '=' ? true : "$filename on line $token[2]");
+					$function_globals[$function][$variable] = ($in_list || $tokens[$i+1] === '=' ? true : "in $filename on line $token[2]");
 				}
 			} elseif ($in_list || $tokens[$i+1] === '=' || !empty($function_calls[count($function_calls) - 1][0])) {
 				if (!$shortcircuit && !isset($initialized[$variable])) {
@@ -183,7 +183,7 @@ function check_variables($filename, $initialized = array(), $function = "", $cla
 						if ($info === true) {
 							$initialized[$variable] = true;
 						} elseif (is_string($info) && !isset($initialized[$variable])) {
-							echo "Uninitialized global $variable in $info\n$filename:$token[2]: called\n";
+							echo "Uninitialized global $variable $info\n$filename:$token[2]: called\n";
 						}
 					}
 				}
