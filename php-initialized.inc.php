@@ -18,7 +18,7 @@
 function check_variables($filename, $initialized = array(), $function = "", $class = "", $in_string = false, $tokens = null, $i = 0, $single_command = null) {
 	static $globals, $function_globals, $function_parameters, $function_calls, $extends;
 	if (func_num_args() < 2) {
-		$globals = array('$php_errormsg', '$_SERVER', '$_GET', '$_POST', '$_COOKIE', '$_FILES', '$_ENV', '$_REQUEST', '$_SESSION'); // not $GLOBALS
+		$globals = array('$php_errormsg' => true, '$_SERVER' => true, '$_GET' => true, '$_POST' => true, '$_COOKIE' => true, '$_FILES' => true, '$_ENV' => true, '$_REQUEST' => true, '$_SESSION' => true); // not $GLOBALS
 		$function_globals = array();
 		$function_parameters = array();
 		$function_calls = array();
@@ -70,7 +70,7 @@ function check_variables($filename, $initialized = array(), $function = "", $cla
 				if (!$shortcircuit && !isset($initialized[$variable])) {
 					$initialized[$variable] = false;
 				}
-			} elseif (empty($initialized[$variable]) && !in_array($variable, $globals)) {
+			} elseif (empty($initialized[$variable]) && !isset($globals[$variable])) {
 				if (isset($function_parameters[$function][$variable])) {
 					$function_parameters[$function][$variable] = false;
 				} else {
