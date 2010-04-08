@@ -9,7 +9,7 @@ if ($argc < 2 || !glob($argv[1])) {
 }
 
 for ($i=1; $i < $argc; $i++) {
-	foreach (glob($argv[1]) as $filename) {
+	foreach (glob($argv[$i]) as $filename) {
 		check_variables($filename);
 	}
 }
