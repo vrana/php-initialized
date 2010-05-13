@@ -202,7 +202,7 @@ function check_variables($filename, $initialized = array(), $function = "", $cla
 				if ($tokens[$i-1][0] === T_DOUBLE_COLON) {
 					$name = (!strcasecmp($tokens[$i-2][1], "self") ? $class : $tokens[$i-2][1]) . "::$name"; //! extends
 				}
-				if (($tokens[$i-1][0] === T_DOUBLE_COLON || !defined($name)) && !isset($globals[$name])) { //! case-insensitive constants
+				if (!defined($name) && !isset($globals[$name])) { //! case-insensitive constants
 					echo "Uninitialized constant $name in $filename on line $token[2]\n";
 				}
 			}
