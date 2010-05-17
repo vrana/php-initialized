@@ -194,7 +194,7 @@ function check_variables($filename, $initialized = array(), $function = "", $cla
 			$in_string = !$in_string;
 		
 		// constants
-		} elseif (!$in_string && $token[0] === T_STRING && $tokens[$i-1][0] !== T_OBJECT_OPERATOR && $tokens[$i-1][0] !== T_NEW && $tokens[$i+1][0] !== T_DOUBLE_COLON) { // not properties and classes
+		} elseif (!$in_string && $token[0] === T_STRING && !in_array($tokens[$i-1][0], array(T_OBJECT_OPERATOR, T_NEW, T_INSTANCEOF), true) && $tokens[$i+1][0] !== T_DOUBLE_COLON) { // not properties and classes
 			$name = $token[1];
 			if ($tokens[$i-1][0] === T_CONST) {
 				$globals[($class ? "$class::" : "") . $name] = true;
