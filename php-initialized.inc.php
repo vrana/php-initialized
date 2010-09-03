@@ -225,6 +225,7 @@ function check_variables($filename, $initialized = array(), $function = "", $cla
 		
 		// include
 		} elseif (in_array($token[0], array(T_INCLUDE, T_REQUIRE, T_INCLUDE_ONCE, T_REQUIRE_ONCE), true)) {
+			//! respect include()
 			$path = "";
 			if ($tokens[$i+1][0] === T_STRING && !strcasecmp($tokens[$i+1][1], "dirname") && $tokens[$i+2] === '(' && $tokens[$i+3][0] === T_FILE && $tokens[$i+4] === ')' && $tokens[$i+5] === '.') {
 				$path = dirname($filename);
@@ -235,8 +236,13 @@ function check_variables($filename, $initialized = array(), $function = "", $cla
 			}
 			if ($tokens[$i+1][0] === T_CONSTANT_ENCAPSED_STRING && $tokens[$i+2] === ';') {
 				$include = stripslashes(substr($tokens[$i+1][1], 1, -1));
-				if (!$path && !file_exists($include) && !preg_match('~^(/|\./|\.\./)~', $include)) { // should respect include_path
-					$path = dirname($filename) . "/";
+				if (!$path && !preg_match('~^(|\.|\.\.)[/\\\\]~', $include)) {
+					foreach (array_merge(explode(PATH_SEPARATOR, get_include_path()), array(dirname($filename), ".")) as $val) { // should respect set_include_path()
+						if (is_readable("$val/$include")) {
+							$path = "$val/";
+							break;
+						}
+					}
 				}
 				$initialized += check_variables($path . $include, $initialized, $function, $class);
 			}
