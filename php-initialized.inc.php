@@ -10,7 +10,7 @@
 * @param int [$single_command] parse only single command, number is current count($function_calls)
 * @return mixed $initialized in the end of code, $i in the end of block
 * @link http://code.google.com/p/php-initialized/
-* @author Jakub Vrana, http://php.vrana.cz
+* @author Jakub Vrana, http://www.vrana.cz/
 * @copyright 2008 Jakub Vrana
 * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
 * @version $Date::                           $
