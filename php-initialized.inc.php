@@ -237,6 +237,7 @@ function check_variables($filename, $initialized = array(), $function = "", $cla
 			if ($tokens[$i+1][0] === T_CONSTANT_ENCAPSED_STRING && $tokens[$i+2] === ';') {
 				$include = stripslashes(substr($tokens[$i+1][1], 1, -1));
 				if (!$path && !preg_match('~^(|\.|\.\.)[/\\\\]~', $include)) {
+					// can use stream_resolve_include_path() since PHP 5.3.2
 					foreach (array_merge(explode(PATH_SEPARATOR, get_include_path()), array(dirname($filename), ".")) as $val) { // should respect set_include_path()
 						if (is_readable("$val/$include")) {
 							$path = "$val/";
