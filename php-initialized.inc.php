@@ -272,7 +272,7 @@ function check_variables($filename, $initialized = array(), $function = "", $cla
 			$i = check_variables($filename, $initialized, $function, $class, $in_string, $tokens, $i+1);
 		} elseif ($token === '}' || in_array($token[0], array(T_ENDDECLARE, T_ENDFOR, T_ENDFOREACH, T_ENDIF, T_ENDSWITCH, T_ENDWHILE), true)) {
 			return $i;
-		} elseif (isset($tokens[$i+1]) && in_array($tokens[$i+1][0], array(T_DECLARE, T_SWITCH, T_IF, T_ELSEIF, T_WHILE, T_DO, T_FOR), true)) { // T_FOREACH in T_AS
+		} elseif (isset($tokens[$i+1]) && in_array($tokens[$i+1][0], array(T_DECLARE, T_SWITCH, T_IF, T_ELSE, T_ELSEIF, T_WHILE, T_DO, T_FOR), true)) { // T_FOREACH in T_AS
 			$i = check_variables($filename, $initialized, $function, $class, $in_string, $tokens, $i+1, count($function_calls));
 		} elseif (count($function_calls) === $single_command && $token === ':') {
 			$i = check_variables($filename, $initialized, $function, $class, $in_string, $tokens, $i+1);
