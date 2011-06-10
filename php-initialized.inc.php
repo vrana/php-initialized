@@ -196,14 +196,16 @@ function check_variables($filename, $initialized = array(), $function = "", $cla
 		// constants
 		} elseif (!$in_string && $token[0] === T_STRING && !in_array($tokens[$i-1][0], array(T_OBJECT_OPERATOR, T_NEW, T_INSTANCEOF), true) && $tokens[$i+1][0] !== T_DOUBLE_COLON) { // not properties and classes
 			$name = $token[1];
-			if ($tokens[$i-1][0] === T_CONST) {
-				$globals[($class ? "$class::" : "") . $name] = true;
-			} else {
-				if ($tokens[$i-1][0] === T_DOUBLE_COLON) {
-					$name = (!strcasecmp($tokens[$i-2][1], "self") ? $class : $tokens[$i-2][1]) . "::$name"; //! extends
-				}
-				if (!defined($name) && !isset($globals[$name])) { //! case-insensitive constants
-					echo "Uninitialized constant $name in $filename on line $token[2]\n";
+			if ($name == strtolower($name)) {
+				if ($tokens[$i-1][0] === T_CONST) {
+					$globals[($class ? "$class::" : "") . $name] = true;
+				} else {
+					if ($tokens[$i-1][0] === T_DOUBLE_COLON) {
+						$name = (!strcasecmp($tokens[$i-2][1], "self") ? $class : $tokens[$i-2][1]) . "::$name"; //! extends
+					}
+					if (!defined($name) && !isset($globals[$name])) { //! case-insensitive constants
+						echo "Uninitialized constant $name in $filename on line $token[2]\n";
+					}
 				}
 			}
 		

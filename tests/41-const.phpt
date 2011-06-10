@@ -2,18 +2,18 @@
 Class constants
 --FILE--
 <?php
-const X = 1; // PHP 5.3
-echo X;
+const x = 1; // PHP 5.3
+echo x;
 class Constants {
-	const Y = 1;
+	const y = 1;
 	function f() {
-		echo self::X;
-		echo self::Y;
+		echo self::x;
+		echo self::y;
 	}
 }
-echo Y;
-echo Constants::Y;
+echo y;
+echo Constants::y;
 ?>
 --EXPECTF--
-Uninitialized constant Constants::X in %s on line 10
-Uninitialized constant Y in %s on line 14
+Uninitialized constant Constants::x in %s on line 10
+Uninitialized constant y in %s on line 14

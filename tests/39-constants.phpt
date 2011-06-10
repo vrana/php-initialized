@@ -2,12 +2,12 @@
 Constants
 --FILE--
 <?php
-define("DEFINED", 1);
+define("defined", 1);
 echo PHP_VERSION;
-echo DEFINED;
-echo UNDEFINED;
+echo defined;
+echo undefined;
 $a = array();
 echo "$a[b]\n";
 ?>
 --EXPECTF--
-Uninitialized constant UNDEFINED in %s on line 8
+Uninitialized constant undefined in %s on line 8
