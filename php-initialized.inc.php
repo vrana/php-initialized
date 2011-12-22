@@ -154,7 +154,7 @@ function check_variables($filename, $initialized = array(), $function = "", $cla
 		} elseif ($token[0] === T_STRING && $tokens[$i+1] === '(') {
 			$name = $token[1];
 			$class_name = "";
-			if (($tokens[$i-1][0] === T_DOUBLE_COLON && $tokens[$i-2][1] === 'self') || ($tokens[$i-1][0] === T_OBJECT_OPERATOR && $tokens[$i-2][1] === '$this')) {
+			if (($tokens[$i-1][0] === T_DOUBLE_COLON && $tokens[$i-2][1] === 'self') || ($tokens[$i-1][0] === T_OBJECT_OPERATOR && is_array($tokens[$i-2]) && $tokens[$i-2][1] === '$this')) {
 				$class_name = $class;
 			} elseif ($tokens[$i-1][0] === T_DOUBLE_COLON && $tokens[$i-2][1] === 'parent') {
 				$class_name = $extends[$class];
