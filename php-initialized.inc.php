@@ -285,7 +285,7 @@ function check_variables($filename, $initialized = array(), $function = "", $cla
 			$shortcircuit[] = count($function_calls);
 		}
 		
-		if (count($function_calls) === $single_command && ($token === '{' || $token === ';') && !in_array($tokens[$i+1][0], array(T_ELSE, T_ELSEIF, T_CATCH), true)) {
+		if (count($function_calls) === $single_command && ($token === '{' || $token === ';') && !(isset($tokens[$i+1]) && in_array($tokens[$i+1][0], array(T_ELSE, T_ELSEIF, T_CATCH), true))) {
 			return $i;
 		}
 	}
