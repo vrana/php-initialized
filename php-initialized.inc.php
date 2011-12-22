@@ -270,7 +270,7 @@ function check_variables($filename, $initialized = array(), $function = "", $cla
 			$in_list = false;
 			array_pop($function_calls);
 		} elseif ($token === ',' && $function_calls) {
-			if ($function_calls[count($function_calls) - 1][0] !== '$...') {
+			if ($function_calls[count($function_calls) - 1] && $function_calls[count($function_calls) - 1][0] !== '$...') {
 				array_shift($function_calls[count($function_calls) - 1]);
 			}
 		} elseif ($token === '{' || $token[0] === T_CURLY_OPEN || $token[0] === T_DOLLAR_OPEN_CURLY_BRACES) {
