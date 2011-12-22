@@ -175,7 +175,7 @@ function check_variables($filename, $initialized = array(), $function = "", $cla
 				$function_calls[] = $parameters;
 			} else {
 				if ($class_name) {
-					while ($class_name && empty($function_parameters["$class_name::$name"])) {
+					while ($class_name && !isset($function_parameters["$class_name::$name"])) {
 						$class_name = $extends[$class_name];
 					}
 					$name = "$class_name::$name";
