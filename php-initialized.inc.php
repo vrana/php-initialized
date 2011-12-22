@@ -156,6 +156,8 @@ function check_variables($filename, $initialized = array(), $function = "", $cla
 			$class_name = "";
 			if (($tokens[$i-1][0] === T_DOUBLE_COLON && $tokens[$i-2][1] === 'self') || ($tokens[$i-1][0] === T_OBJECT_OPERATOR && $tokens[$i-2][1] === '$this')) {
 				$class_name = $class;
+			} elseif ($tokens[$i-1][0] === T_DOUBLE_COLON && $tokens[$i-2][1] === 'parent') {
+				$class_name = $extends[$class];
 			} elseif ($tokens[$i-1][0] === T_DOUBLE_COLON && $tokens[$i-2][0] === T_STRING) {
 				$class_name = $tokens[$i-2][1];
 			} elseif (!strcasecmp($name, "define") && $tokens[$i+2][0] === T_CONSTANT_ENCAPSED_STRING && $tokens[$i+3] === ',') { // constant definition
