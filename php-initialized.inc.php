@@ -136,12 +136,16 @@ function check_variables($filename, $initialized = array(), $function = "", $cla
 				if ($tokens[$i] === '&') {
 					$i++;
 				}
-				$name = ($class ? "$class::" : "") . $tokens[$i][1];
-				$function_parameters[$name] = array();
+				$name = ($tokens[$i] === '(' ? '' : ($class ? "$class::" : "") . $tokens[$i][1]);
+				if ($name) {
+					$function_parameters[$name] = array();
+				}
 				do {
 					$i++;
 					if ($tokens[$i][0] === T_VARIABLE) {
-						$function_parameters[$name][$tokens[$i][1]] = ($tokens[$i-1] === '&');
+						if ($name) {
+							$function_parameters[$name][$tokens[$i][1]] = ($tokens[$i-1] === '&');
+						}
 						if ($tokens[$i-1] !== '&') {
 							$locals[$tokens[$i][1]] = true;
 						}
