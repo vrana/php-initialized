@@ -27,7 +27,7 @@ function check_variables($filename, $initialized = array(), $function = "", $cla
 	}
 	if (!isset($tokens)) {
 		$tokens = array();
-		foreach (token_get_all(file_get_contents($filename)) as $token) {
+		foreach (token_get_all(@file_get_contents($filename)) as $token) {
 			if (!in_array($token[0], array(T_WHITESPACE, T_COMMENT, T_DOC_COMMENT), true)) {
 				$tokens[] = $token;
 			}
@@ -179,7 +179,7 @@ function check_variables($filename, $initialized = array(), $function = "", $cla
 				$function_calls[] = $parameters;
 			} else {
 				if ($class_name) {
-					while ($class_name && !isset($function_parameters["$class_name::$name"])) {
+					while ($class_name && !isset($function_parameters["$class_name::$name"]) && isset($extends[$class_name])) {
 						$class_name = $extends[$class_name];
 					}
 					$name = "$class_name::$name";
@@ -239,7 +239,7 @@ function check_variables($filename, $initialized = array(), $function = "", $cla
 			if ($tokens[$i+1][0] === T_STRING && !strcasecmp($tokens[$i+1][1], "dirname") && $tokens[$i+2] === '(' && $tokens[$i+3][0] === T_FILE && $tokens[$i+4] === ')' && $tokens[$i+5] === '.') {
 				$path = dirname($filename);
 				$i += 5;
-			} elseif (!strcasecmp($tokens[$i+1][1], "__DIR__") && $tokens[$i+2] === '.') {
+			} elseif (is_array($tokens[$i+1]) && !strcasecmp($tokens[$i+1][1], "__DIR__") && $tokens[$i+2] === '.') {
 				$path = dirname($filename);
 				$i += 2;
 			}
