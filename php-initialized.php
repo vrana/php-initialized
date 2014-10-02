@@ -23,8 +23,11 @@ for ($i=1; $i < count($argv); $i++) {
 			return preg_replace_callback('/.* on line (\d+)\n(\S+:\d+:.*\n)?/', function (array $match) {
 				global $lines;
 				list($all, $line) = $match;
+				if (!$lines) {
+					return $all;
+				}
 				list($min, $max) = $lines;
-				if (!$lines || ($line >= $min && $line <= $max)) {
+				if ($line >= $min && $line <= $max) {
 					return $all;
 				}
 			}, $s);
